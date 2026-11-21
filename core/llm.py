@@ -1,5 +1,6 @@
 
 import os
+import streamlit as st
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 
@@ -10,7 +11,13 @@ def get_llm():
     api_key = os.getenv("GEMINI_API_KEY")
 
     if not api_key:
-        raise ValueError("GEMINI_API_KEY not found in environment")
+        try:
+            api_key = st.secrets["GEMINI_API_KEY"]
+        except (KeyError, FileNotFoundError):
+            pass
+
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY not found in environment or Streamlit secrets")
 
     return ChatGoogleGenerativeAI(
         model="gemini-3.5-flash-lite",
