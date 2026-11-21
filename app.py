@@ -1,8 +1,24 @@
+
 import streamlit as st
+import os
+import shutil
+import subprocess
+
+# Install Deno if it is not already available
+deno_path = os.path.expanduser("~/.deno/bin")
+os.environ["PATH"] = deno_path + os.pathsep + os.environ.get("PATH", "")
+
+if not shutil.which("deno"):
+    subprocess.run(
+        "curl -fsSL https://deno.land/install.sh | sh",
+        shell=True,
+        check=True
+    )
+
 from main import run_pipeline
 from core.rag_engine import ask_question
 import tempfile
-import os
+
 
 st.set_page_config(
     page_title="MeetingAI",
