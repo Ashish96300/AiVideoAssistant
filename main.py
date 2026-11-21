@@ -1,41 +1,82 @@
+
 from dotenv import load_dotenv
 
-from utils.audio_processor import process_input
+from utils.audio_processor import (
+    process_input,
+    download_yt_transcript,
+)
+
 from core.transcriber import transcribe_all
+
 from core.summarize import summarize, generate_title
+
 from core.extractor import (
     extract_action_items,
     extract_key_decisions,
-    extract_questions
+    extract_questions,
 )
+
 from core.rag_engine import build_rag_chain, ask_question
 
 load_dotenv()
 
 
 def run_pipeline(source: str, language: str = "english") -> dict:
+
     print("Starting AI Video Assistant...")
 
-    # 1. Audio processing
-    chunks = process_input(source)
+    # 1. Try YouTube captions first.
+    transcript = None
 
-    # 2. Transcription
-    translate = language.lower() != "english"
-    transcript = transcribe_all(chunks, translate=translate)
+    is_youtube_url = source.startswith(
+        ("https://", "http://")
+    )
 
-    print(f"Raw transcription (first 300 chars): {transcript[:300]}")
+    if is_youtube_url:
 
-    # 3. Meeting intelligence
+        print("Attempting transcript-first processing...")
+
+        transcript = download_yt_transcript(
+            source,
+            language=language,
+        )
+
+    # 2. Fall back to audio processing + Whisper.
+    if transcript is None:
+
+        print("Using audio processing and Whisper...")
+
+        chunks = process_input(source)
+
+        translate = language.lower() != "english"
+
+        transcript = transcribe_all(
+            chunks,
+            translate=translate,
+        )
+
+    else:
+
+        print("Skipping audio download and Whisper.")
+
+    print(
+        f"Raw transcription (first 300 chars): "
+        f"{transcript[:300]}"
+    )
+
+    # 3. Meeting intelligence.
     title = generate_title(transcript)
+
     summary = summarize(transcript)
 
     action_items = extract_action_items(transcript)
+
     decisions = extract_key_decisions(transcript)
+
     questions = extract_questions(transcript)
 
-    # 4. RAG
+    # 4. RAG.
     rag_chain = build_rag_chain(transcript)
-
 
     return {
         "title": title,
@@ -61,6 +102,7 @@ if __name__ == "__main__":
     result = run_pipeline(source, language)
 
     print(f"\nTitle: {result['title']}")
+
     print(f"\nSummary:\n{result['summary']}")
 
     print("\nAction Items:")
@@ -77,12 +119,17 @@ if __name__ == "__main__":
     rag_chain = result["rag_chain"]
 
     while True:
+
         question = input("\nYou: ").strip()
 
         if question.lower() == "exit":
+
             print("Goodbye!")
             break
 
-        answer = ask_question(rag_chain, question)
+        answer = ask_question(
+            rag_chain,
+            question,
+        )
 
         print(f"\nAssistant: {answer}")
