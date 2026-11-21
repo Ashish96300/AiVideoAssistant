@@ -4,6 +4,7 @@ import os
 import shutil
 import subprocess
 
+
 # Install Deno if it is not already available
 deno_path = os.path.expanduser("~/.deno/bin")
 os.environ["PATH"] = deno_path + os.pathsep + os.environ.get("PATH", "")
@@ -14,6 +15,37 @@ if not shutil.which("deno"):
         shell=True,
         check=True
     )
+
+
+# Set up bgutil PO Token Provider
+
+provider_dir = os.path.expanduser("~/bgutil-ytdlp-pot-provider")
+provider_server = os.path.join(provider_dir, "server")
+
+if not os.path.exists(provider_dir):
+    subprocess.run(
+        [
+            "git", "clone",
+            "--single-branch",
+            "--branch", "2.0.2",
+            "https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git",
+            provider_dir
+        ],
+        check=True
+    )
+
+# Install provider dependencies using Deno
+subprocess.run(
+    [
+        "deno", "install",
+        "--allow-scripts=npm:canvas",
+        "--frozen"
+    ],
+    cwd=provider_server,
+    check=True
+)
+
+print("BGUTIL PO Token Provider setup completed.")
 
 from main import run_pipeline
 from core.rag_engine import ask_question
