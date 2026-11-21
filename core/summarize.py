@@ -1,35 +1,34 @@
-from langchain_mistralai import ChatMistralAI
+
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_core.runnables import RunnablePassthrough , RunnableLambda
+from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 from core.llm import get_llm
 
-import os
 
-llm = get_llm()
-
-def split_transcript(transcript:str)->list:
+def split_transcript(transcript: str) -> list:
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=3000,
         chunk_overlap=200
     )
     return splitter.split_text(transcript)
 
-def summarize(transcript:str)->str:
+
+def summarize(transcript: str) -> str:
     llm = get_llm()
 
     map_prompt = ChatPromptTemplate.from_messages(
         [
-            ("system" ,"summarize this portion of a meeting transcript concisely"),
-            ("human","{text}"),
+            ("system", "summarize this portion of a meeting transcript concisely"),
+            ("human", "{text}"),
         ]
     )
     map_chain = map_prompt | llm | StrOutputParser()
 
     chunks = split_transcript(transcript)
-
-    chunk_summarize = [map_chain.invoke({"text" : chunk}) for chunk in chunks]
+    chunk_summarize = [
+        map_chain.invoke({"text": chunk}) for chunk in chunks
+    ]
 
     combined = "\n\n".join(chunk_summarize)
 
@@ -37,31 +36,40 @@ def summarize(transcript:str)->str:
         [
             (
                 "system",
-                "you are an expert meeting summarizer , combine these partial summaries"
-                "into one final proffessional meeting summary in bullet points",
+                "you are an expert meeting summarizer, combine these partial summaries "
+                "into one final professional meeting summary in bullet points",
             ),
-            ("human","{text}")
+            ("human", "{text}")
         ]
     )
 
-    combined_chain=(
-         RunnablePassthrough() | RunnableLambda(lambda x:{"text":x}) | combined_prompt |llm |StrOutputParser()
-    )  
+    combined_chain = (
+        RunnablePassthrough()
+        | RunnableLambda(lambda x: {"text": x})
+        | combined_prompt
+        | llm
+        | StrOutputParser()
+    )
+
     return combined_chain.invoke(combined)
 
-def generate_title(transcript : str)->str:
+
+def generate_title(transcript: str) -> str:
     llm = get_llm()
 
-    title_chain =(
-        RunnablePassthrough() | RunnableLambda(lambda x:{"text":x}) | ChatPromptTemplate.from_messages([
+    title_chain = (
+        RunnablePassthrough()
+        | RunnableLambda(lambda x: {"text": x})
+        | ChatPromptTemplate.from_messages([
             (
                 "system",
-                "based on the meeting transcript , generate a short professional meeting title"
-                "max 8 words ,only return title nothing else",
+                "based on the meeting transcript, generate a short professional meeting title "
+                "max 8 words, only return title nothing else",
             ),
-            ("human" , "{text}"),
+            ("human", "{text}"),
         ])
         | llm
-        |StrOutputParser()
+        | StrOutputParser()
     )
+
     return title_chain.invoke(transcript[:2000])
