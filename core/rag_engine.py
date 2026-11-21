@@ -1,4 +1,4 @@
-from langchain_mistralai import ChatMistralAI
+
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
@@ -9,9 +9,6 @@ from core.vector_store import (
     load_vector,
     get_retriever
 )
-
-import os
-
 
 llm = get_llm()
 

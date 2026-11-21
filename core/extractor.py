@@ -1,12 +1,9 @@
 #Actionableitems , decision , questions , means in meeting if someone ask any question , or any action to perform so this file extracts them
 
-from langchain_mistralai import ChatMistralAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough , RunnableLambda
 from core.llm import get_llm
-
-import os
 
 llm = get_llm()
 
