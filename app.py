@@ -1,5 +1,6 @@
 import streamlit as st
 from main import run_pipeline
+from core.rag_engine import ask_question
 import tempfile
 import os
 
@@ -27,6 +28,7 @@ with st.sidebar:
     st.divider()
 
     if st.button("＋ New Meeting", use_container_width=True):
+        st.session_state.messages = []
         st.session_state.processed = False
         st.session_state.result = None
         st.rerun()
@@ -160,18 +162,39 @@ if st.session_state.processed:
         st.subheader("Open Questions")
         st.markdown(result["open_questions"])
 
+    
     with tab5:
         st.subheader("Chat with your meeting")
 
-        question = st.chat_input(
-            "Ask something about this meeting..."
-        )
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
 
-        if question:
+        # Display previous messages
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+        # Accept a new question
+        if question := st.chat_input("Ask something about your meeting..."):
+
+            st.session_state.messages.append({
+                "role": "user",
+                "content": question
+            })
+
             with st.chat_message("user"):
-                st.write(question)
+                st.markdown(question)
 
             with st.chat_message("assistant"):
-                st.write(
-                    "Your RAG chain will answer this question here."
-                )
+                with st.spinner("Thinking..."):
+                    answer = ask_question(
+                        st.session_state.result["rag_chain"],
+                        question
+                    )
+
+                st.markdown(answer)
+
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": answer
+            })

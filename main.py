@@ -29,12 +29,13 @@ def run_pipeline(source: str, language: str = "english") -> dict:
     title = generate_title(transcript)
     summary = summarize(transcript)
 
-    # action_items = extract_action_items(transcript)
-    # decisions = extract_key_decisions(transcript)
-    # questions = extract_questions(transcript)
+    action_items = extract_action_items(transcript)
+    decisions = extract_key_decisions(transcript)
+    questions = extract_questions(transcript)
 
     # 4. RAG
     rag_chain = build_rag_chain(transcript)
+
 
     return {
         "title": title,

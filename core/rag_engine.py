@@ -2,6 +2,7 @@ from langchain_mistralai import ChatMistralAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
+from core.llm import get_llm
 
 from core.vector_store import (
     build_vector_store,
@@ -12,13 +13,7 @@ from core.vector_store import (
 import os
 
 
-def get_llm():
-    return ChatMistralAI(
-        model="mistral-small-latest",
-        mistral_api_key=os.getenv("MISTRAL_API_KEY"),
-        temperature=0.3
-    )
-
+llm = get_llm()
 
 def format_docs(docs):
     return "\n\n".join(
