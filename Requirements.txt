@@ -1,0 +1,15 @@
+streamlit
+langchain
+langchain-core
+langchain-community
+langchain-mistralai
+langchain-huggingface
+chromadb
+sentence-transformers
+openai-whisper
+yt-dlp
+torch
+transformers
+fpdf2
+python-dotenv
+pypdf

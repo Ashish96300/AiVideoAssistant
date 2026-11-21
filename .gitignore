@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+.env
+*.pyc
+
+# Generated audio
+downloads/
+*.wav
+*.mp3
+*.m4a
+*.webm
+
+# Vector database
+vector_db/
